@@ -1,0 +1,39 @@
+#!/bin/zsh
+
+! [[ $(<<< $@ | grep '\-\-debug') ]] && DEBUG=false || DEBUG=true
+
+delimiters=(', ' '. ' ': ' '; ' ' and ' ' or ' ' but ' ' to ' ' as ')
+
+quotes=()
+for i in {1..7}
+do
+	quotes+="$(gready)"
+	while :
+	do
+		d=$delimiters[(RANDOM % $#delimiters + 1)]
+		grep $d <<< $quotes[i] > /dev/null
+		[ $? -eq 1 ] && continue
+		
+		case $((RANDOM%4)) in
+0)	[ ! -z "${quotes[i]##*$d}" ] && quotes[$i]="${quotes[i]##*$d}$d"
+break
+;;
+1) [ ! -z "${quotes[i]#*$d}" ] && quotes[$i]="${quotes[i]#*$d}$d"
+break
+;;
+2) [ ! -z "${quotes[i]%%$d*}" ] && quotes[$i]="${quotes[i]%%$d*}$d"
+break
+;;
+3) [ ! -z "${quotes[i]%$d*}" ] && quotes[$i]="${quotes[i]%$d*}$d"
+break
+;;
+esac
+	done
+	parts=(${(s/./)quotes[$i]})
+	(( $#parts >= 2 )) && quotes[i]=$parts[(RANDOM % $#parts + 1)] 
+	quotes[i]=$(<<< $quotes[i] | sed 's/  / /g')
+	echo "$i. $quotes[i]"
+done
+
+echo "$quotes[@]"
+exit
