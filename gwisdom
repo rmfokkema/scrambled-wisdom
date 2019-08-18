@@ -1,13 +1,21 @@
 #!/bin/zsh
+#! [[ $(<<< $@ | grep '\-\-debug') ]] && DEBUG=false || DEBUG=true
 
-! [[ $(<<< $@ | grep '\-\-debug') ]] && DEBUG=false || DEBUG=true
+osascript -e 'display notification "Generating your wisdom..." with title "Scrambled Poetry"'
 
 delimiters=(', ' '. ' ': ' '; ' ' and ' ' or ' ' but ' ' to ' ' as ')
-
 quotes=()
-for i in {1..7}
+
+for i in {1..5}
 do
-	quotes+="$(gready)"
+
+	case $((RANDOM%2)) in
+		0) quotes+="$(gready)"
+		;;
+		1) quotes+="$(brainy)"
+		;;
+	esac
+	
 	while :
 	do
 		d=$delimiters[(RANDOM % $#delimiters + 1)]
@@ -15,25 +23,31 @@ do
 		[ $? -eq 1 ] && continue
 		
 		case $((RANDOM%4)) in
-0)	[ ! -z "${quotes[i]##*$d}" ] && quotes[$i]="${quotes[i]##*$d}$d"
-break
-;;
-1) [ ! -z "${quotes[i]#*$d}" ] && quotes[$i]="${quotes[i]#*$d}$d"
-break
-;;
-2) [ ! -z "${quotes[i]%%$d*}" ] && quotes[$i]="${quotes[i]%%$d*}$d"
-break
-;;
-3) [ ! -z "${quotes[i]%$d*}" ] && quotes[$i]="${quotes[i]%$d*}$d"
-break
-;;
-esac
+			0)	[ ! -z "${quotes[i]##*$d}" ] && quotes[$i]="${quotes[i]##*$d}$d"
+				break
+				;;
+			1) [ ! -z "${quotes[i]#*$d}" ] && quotes[$i]="${quotes[i]#*$d}$d"
+				break
+				;;
+			2) [ ! -z "${quotes[i]%%$d*}" ] && quotes[$i]="${quotes[i]%%$d*}$d"
+				break
+				;;
+			3) [ ! -z "${quotes[i]%$d*}" ] && quotes[$i]="${quotes[i]%$d*}$d"
+				break
+				;;
+		esac
 	done
+	
 	parts=(${(s/./)quotes[$i]})
-	(( $#parts >= 2 )) && quotes[i]=$parts[(RANDOM % $#parts + 1)] 
-	quotes[i]=$(<<< $quotes[i] | sed 's/  / /g')
-	echo "$i. $quotes[i]"
+	(( $#parts > 2 )) && quotes[i]="$parts[(RANDOM % $#parts + 1)]." 
+	quotes[$i]=$(<<< $quotes[i] | sed 's/  / /g')
+	
+	grep '\-s' <<< $@ >/dev/null
+	[ $? -eq 1 ] && echo "$i. $quotes[i]"
+	
+	osascript -e "display notification \"Your wisdom is at $(( i * 20))%.\" with title \"Questionnable Wisdom\""
 done
 
-echo "$quotes[@]"
-exit
+echo
+echo "$quotes[@]" | sed 's/  / /g'
+echo
