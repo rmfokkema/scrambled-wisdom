@@ -7,8 +7,6 @@ do
     case $opt in
     'N')    [[ $OPTARG > 0 ]] && MAX_QUOTES=$OPTARG
             ;;
-#    :)          echo Doei
-#            ;;
     esac
 done
 
